@@ -2,7 +2,7 @@ var Stratum = require('stratum-pool');
 var redis = require('redis');
 var net = require('net');
 
-var MposCompatibility = require('./mposCompatibility.js');
+
 var ShareProcessor = require('./shareProcessor.js');
 
 const loggerFactory = require('./logger.js');
