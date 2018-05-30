@@ -12,9 +12,9 @@
         "litecoin",
         "scrypt"
     ],
-    "homepage": "https://github.com/1301313Y/BootNOMP",
+    "homepage": "https://github.com/BoomNOMP/BoomNOMP",
     "bugs": {
-        "url": "https://github.com/1301313Y/BootNOMP/issues"
+        "url": "https://github.com/BoomNOMP/BoomNOMP/issues"
     },
     "license": "GPL-2.0",
     "author": "Matthew Little",
@@ -31,7 +31,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/1301313Y/BootNOMP.git"
+        "url": "https://github.com/BoomNOMP/BoomNOMP.git"
     },
     "dependencies": {
         "async": "^2.5.0",
@@ -51,7 +51,7 @@
         "redis": "^2.7.1",
         "request": "^2.83.0",
         "sma": "^0.1.0",
-        "stratum-pool": "git://github.com/1301313Y/node-stratum-pool.git",
+        "stratum-pool": "git://github.com/BoomNOMP/node-stratum-pool.git",
         "winston": "3.0.0-rc2",
         "winston-daily-rotate-file": "^3.0.0"
     },
