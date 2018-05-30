@@ -136,6 +136,8 @@ You can see the logs of the server with ```docker logs -f nomp```, or jump into 
 | ------------- | ------------- | ------------- |
 | - | __Scrypt-Jane__ | submitblock not working tested with CacheCoin, Yacoin |
 
+https://docs.google.com/spreadsheets/d/1brtwII-e1ce94vidZcs-pPPhfI9J_j9EomwyL8yonuM/edit?usp=sharing
+
 -------
 
 -------
