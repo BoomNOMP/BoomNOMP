@@ -48,6 +48,7 @@
         "node-json-minify": "^1.0.0",
         "node-watch": "^0.5.5",
         "nonce": "^1.0.4",
+        "posix": "^4.1.2",
         "redis": "^2.7.1",
         "request": "^2.83.0",
         "sma": "^0.1.0",

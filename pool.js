@@ -7,12 +7,11 @@ var async = require('async');
 
 var CliListener = require('./libs/cliListener.js');
 var PoolWorker = require('./libs/poolWorker.js');
-var PaymentProcessor = require('./libs/paymentProcessor.js');
+
 var Website = require('./libs/website.js');
-var ProfitSwitch = require('./libs/profitSwitch.js');
 
 const loggerFactory = require('./libs/logger.js');
-const logger = loggerFactory.getLogger('init.js', 'system');
+const logger = loggerFactory.getLogger('pool.js', 'system');
 
 var algos = require('stratum-pool/lib/algoProperties.js');
 
@@ -69,15 +68,9 @@ if (cluster.isWorker) {
         case 'pool':
             new PoolWorker();
             break;
-        case 'paymentProcessor':
-            new PaymentProcessor();
-            break;
         case 'website':
             new Website();
             break;
-//        case 'profitSwitch':
-//            new ProfitSwitch();
-//            break;
     }
 
     return;
@@ -127,24 +120,15 @@ var buildPoolConfigs = function () {
 
 
     poolConfigFiles.forEach(function (poolOptions) {
-
-        poolOptions.coinFileName = poolOptions.coin;
-
-        var coinFilePath = 'coins/' + poolOptions.coinFileName;
-        if (!fs.existsSync(coinFilePath)) {
-            logger.error('[%s] could not find file %s ', poolOptions.coinFileName, coinFilePath);
-            return;
+        if (!poolOptions.enable) {
+          return;       
         }
-
-        var coinProfile = JSON.parse(JSON.minify(fs.readFileSync(coinFilePath, {encoding: 'utf8'})));
-        poolOptions.coin = coinProfile;
         poolOptions.coin.name = poolOptions.coin.name.toLowerCase();
-
         if (poolOptions.coin.name in configs) {
 
             //todo string interpolation
             logger.error('%s coins/' + poolOptions.coinFileName
-                + ' has same configured coin name ' + poolOptions.coin.name + ' as coins/'
+                + ' has fsame configured coin name ' + poolOptions.coin.name + ' as coins/'
                 + configs[poolOptions.coin.name].coinFileName + ' used by pool config '
                 + configs[poolOptions.coin.name].fileName, poolOptions.fileName);
 
@@ -165,11 +149,10 @@ var buildPoolConfigs = function () {
             }
         }
 
-
         configs[poolOptions.coin.name] = poolOptions;
 
-        if (!(coinProfile.algorithm in algos)) {
-            logger.error('[%s] Cannot run a pool for unsupported algorithm "' + coinProfile.algorithm + '"', coinProfile.name);
+        if (!(poolOptions.coin.algorithm in algos)) {
+            logger.error('[%s] Cannot run a pool for unsupported algorithm "' + poolOptions.coin.algorithm + '"', poolOptions.coin.name);
             delete configs[poolOptions.coin.name];
         }
 
@@ -177,57 +160,6 @@ var buildPoolConfigs = function () {
     return configs;
 };
 
-var buildAuxConfigs = function(){
-    var configs = {};
-    var configDir = 'aux_configs/';
-
-    var poolConfigFiles = [];
-
-
-    /* Get filenames of pool config json files that are enabled */
-    fs.readdirSync(configDir).forEach(function(file){
-        if (!fs.existsSync(configDir + file) || path.extname(configDir + file) !== '.json') return;
-        var poolOptions = JSON.parse(JSON.minify(fs.readFileSync(configDir + file, {encoding: 'utf8'})));
-        if (!poolOptions.enabled) return;
-        poolOptions.fileName = file;
-        poolConfigFiles.push(poolOptions);
-    });
-
-    poolConfigFiles.forEach(function(poolOptions){
-
-        poolOptions.coinFileName = poolOptions.coin;
-
-        var poolFilePath = 'coins/' + poolOptions.coinFileName;
-        if (!fs.existsSync(poolFilePath)){
-            logger.warn('Master', poolOptions.coinFileName, 'could not find file: ' + poolFilePath);
-            return;
-        }
-
-        var poolProfile = JSON.parse(JSON.minify(fs.readFileSync(poolFilePath, {encoding: 'utf8'})));
-        poolOptions.coin = poolProfile;
-        poolOptions.coin.name = poolOptions.coin.name.toLowerCase();
-        configs[poolOptions.coin.name] = poolOptions;
-
-        for (var option in portalConfig.defaultPoolConfigs){
-            if (!(option in poolOptions)){
-                var toCloneOption = portalConfig.defaultPoolConfigs[option];
-                var clonedOption = {};
-                if (toCloneOption.constructor === Object)
-                    extend(true, clonedOption, toCloneOption);
-                else
-                    clonedOption = toCloneOption;
-                poolOptions[option] = clonedOption;
-            }
-        }
-
-        if (!(poolProfile.algorithm in algos)){
-            logger.warn('Master', coinProfile.name, 'Cannot run a pool for unsupported algorithm "' + coinProfile.algorithm + '"');
-            delete configs[poolOptions.coin.name];
-        }
-
-    });
-    return configs;
-};
 
 
 var spawnPoolWorkers = function () {
@@ -416,59 +348,7 @@ var processCoinSwitchCommand = function (params, options, reply) {
 
 };
 
-var startPaymentProcessor = function(){
 
-    var enabledForAny = false;
-    for (var pool in poolConfigs){
-        var p = poolConfigs[pool];
-        var enabled = p.enabled && p.paymentProcessing && p.paymentProcessing.enabled;
-        if (enabled){
-            enabledForAny = true;
-            break;
-        }
-    }
-
-    if (!enabledForAny)
-        return;
-
-    var worker = cluster.fork({
-        workerType: 'paymentProcessor',
-        pools: JSON.stringify(poolConfigs)
-    });
-    worker.on('exit', function(code, signal){
-        logger.error('Master', 'Payment Processor', 'Payment processor died, spawning replacement...');
-        setTimeout(function(){
-            startPaymentProcessor(poolConfigs);
-        }, 2000);
-    });
-};
-
-var startAuxPaymentProcessor = function(){
-
-    var enabledForAny = false;
-    for (var aux in auxConfigs){
-        var p = auxConfigs[aux];
-        var enabled = p.enabled && p.paymentProcessing && p.paymentProcessing.enabled;
-        if (enabled){
-            enabledForAny = true;
-            break;
-        }
-    }
-
-    if (!enabledForAny)
-        return;
-
-    var worker = cluster.fork({
-        workerType: 'paymentProcessor',
-        pools: JSON.stringify(auxConfigs)
-    });
-    worker.on('exit', function(code, signal){
-        logger.error('Master', 'Auxilliary Payment Processor', 'Auxilliary Payment processor died, spawning replacement...');
-        setTimeout(function(){
-            startPaymentProcessor(auxConfigs);
-        }, 2000);
-    });
-};
 
 
 
@@ -490,43 +370,18 @@ var startWebsite = function () {
 };
 
 
-var startProfitSwitch = function () {
 
-    if (!portalConfig.profitSwitch || !portalConfig.profitSwitch.enabled) {
-        //logger.error('Master', 'Profit', 'Profit auto switching disabled');
-        return;
-    }
-
-    var worker = cluster.fork({
-        workerType: 'profitSwitch',
-        pools: JSON.stringify(poolConfigs),
-        portalConfig: JSON.stringify(portalConfig)
-    });
-    worker.on('exit', function (code, signal) {
-        logger.error('Master', 'Profit', 'Profit switching process died, spawning replacement...');
-        setTimeout(function () {
-            startWebsite(portalConfig, poolConfigs);
-        }, 2000);
-    });
-};
 
 
 (function init() {
 
     poolConfigs = buildPoolConfigs();
 
-    auxConfigs = buildAuxConfigs();
-
     spawnPoolWorkers();
 
     setTimeout(function(){
-      startPaymentProcessor();
-
-      startAuxPaymentProcessor();
 
       startWebsite();
-
-      startProfitSwitch();
 
       startCliListener();
     }, 2000);
