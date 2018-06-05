@@ -87,13 +87,12 @@ var buildPoolConfigs = function () {
 
     /* Get filenames of pool config json files that are enabled */
     fs.readdirSync(configDir).forEach(function (file) {
-        if (!fs.existsSync(configDir + file) || path.extname(configDir + file) !== '.json') return;
+        if (!fs.existsSync(configDir + file) || path.extname(configDir + file) !== '.json' ) return;
         var poolOptions = JSON.parse(JSON.minify(fs.readFileSync(configDir + file, {encoding: 'utf8'})));
         if (!poolOptions.enabled) return;
         poolOptions.fileName = file;
         poolConfigFiles.push(poolOptions);
     });
-
 
     /* Ensure no pool uses any of the same ports as another pool */
     for (var i = 0; i < poolConfigFiles.length; i++) {
@@ -120,10 +119,12 @@ var buildPoolConfigs = function () {
 
 
     poolConfigFiles.forEach(function (poolOptions) {
-        if (!poolOptions.enable) {
+        if (!poolOptions.enabled) {
+         
           return;       
         }
         poolOptions.coin.name = poolOptions.coin.name.toLowerCase();
+        
         if (poolOptions.coin.name in configs) {
 
             //todo string interpolation
@@ -135,7 +136,7 @@ var buildPoolConfigs = function () {
             process.exit(1);
             return;
         }
-
+        
         for (var option in portalConfig.defaultPoolConfigs) {
             if (!(option in poolOptions)) {
                 var toCloneOption = portalConfig.defaultPoolConfigs[option];
@@ -156,7 +157,9 @@ var buildPoolConfigs = function () {
             delete configs[poolOptions.coin.name];
         }
 
-    });
+    }); 
+    
+    
     return configs;
 };
 

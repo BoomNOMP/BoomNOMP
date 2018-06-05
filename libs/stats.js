@@ -11,7 +11,7 @@ var algos = require('stratum-pool/lib/algoProperties.js');
 const logger = require('./logger.js').getLogger('Stats', 'system');
 
 
-module.exports = function(portalConfig, poolConfigs) {
+module.exports = function( portalConfig, poolConfigs) {
   logger.info("Starting Stats Module...");
 
   var _this = this;

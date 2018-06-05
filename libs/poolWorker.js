@@ -31,11 +31,6 @@ module.exports = function() {
       case 'blocknotify':
         onBlockNotify(message);
         break;
-
-        // IPC message for pool switching
-      case 'coinswitch':
-        onCoinSwitch(message);
-        break;
     }
   });
 
@@ -118,80 +113,22 @@ module.exports = function() {
       diff: function() {}
     };
 
-    //Functions required for MPOS compatibility
-    if (poolOptions.mposMode && poolOptions.mposMode.enabled) {
-      var mposCompat = new MposCompatibility(poolOptions);
-
-      handlers.auth = function(port, workerName, password, authCallback) {
-        mposCompat.handleAuth(workerName, password, authCallback);
-      };
-
-      handlers.share = function(isValidShare, isValidBlock, data) {
-        mposCompat.handleShare(isValidShare, isValidBlock, data);
-      };
-
-      handlers.diff = function(workerName, diff) {
-        mposCompat.handleDifficultyUpdate(workerName, diff);
-      }
-    }
-
-    //Functions required for Mongo Mode
-    //else if (poolOptions.mongoMode && poolOptions.mongoMode.enabled) {
-    //TODO: PRIORITY: Write this section
-    //}
-
+  
     //Functions required for internal payment processing
-    else {
 
       var shareProcessor = new ShareProcessor(poolOptions);
 
       handlers.auth = function(port, workerName, password, authCallback) {
-        if (!poolOptions.validateWorkerUsername) {
-          authCallback(true);
-        } else {
-          try {
-            // tests address.worker syntax
-            let re = /^(?:[a-zA-Z0-9]+\.)*[a-zA-Z0-9]+$/;
-            if (re.test(workerName)) {
-              // not valid input, does not respect address.worker scheme. Acceptable chars a a-Z and 0-9
-              //todo log
-              if (workerName.indexOf('.') !== -1) {
-                //have worker
-                let tmp = workerName.split('.');
-                if (tmp.length !== 2) {
-                  authCallback(false);
-                } else {
-                  pool.daemon.cmd('validateaddress', [tmp[0]], function(results) {
-                    var isValid = results.filter(function(r) {
-                      return r.response.isvalid
-                    }).length > 0;
-                    authCallback(isValid);
-                  });
-                }
-              } else {
-                //only address
-                pool.daemon.cmd('validateaddress', [workerName], function(results) {
-                  var isValid = results.filter(function(r) {
-                    return r.response.isvalid
-                  }).length > 0;
-                  authCallback(isValid);
-                });
-              }
-            } else {
-              authCallback(false);
-            }
-          } catch (e) {
-            authCallback(false);
-          }
-
-        }
+          // All adreses valid logig
+          // TODO: any validates
+          authCallback(true); 
       };
 
       handlers.share = function(isValidShare, isValidBlock, data) {
         logger.silly('Handle share, execeuting shareProcessor.handleShare, isValidShare = %s, isValidBlock = %s, data = %s', isValidShare, isValidBlock, JSON.stringify(data))
         shareProcessor.handleShare(isValidShare, isValidBlock, data);
       };
-    }
+
 
     var authorizeFN = function(ip, port, workerName, password, callback) {
       handlers.auth(port, workerName, password, function(authorized) {
@@ -245,7 +182,7 @@ module.exports = function() {
         ip: ip
       });
     }).on('started', function() {
-      _this.setDifficultyForProxyPort(pool, poolOptions.coin.name, poolOptions.coin.algorithm);
+      // TODO: delte this
     });
 
     pool.start();
@@ -253,82 +190,7 @@ module.exports = function() {
   });
 
 
-  if (portalConfig.switching) {
-
-    let logger = loggerFactory.getLogger(`SwitchingSetup[:${(parseInt(forkId) + 1)}]`, 'system');
-    var proxyState = {};
-
-    //
-    // Load proxy state for each algorithm from redis which allows NOMP to resume operation
-    // on the last pool it was using when reloaded or restarted
-    //
-    logger.debug('Loading last proxy state from redis');
-
-
-    /*redisClient.on('error', function(err){
-        logger.debug(logSystem, logComponent, logSubCat, 'Pool configuration failed: ' + err);
-    });*/
-
-    redisClient.hgetall("proxyState", function(error, obj) {
-      if (!error && obj) {
-        proxyState = obj;
-        logger.debug('Last proxy state loaded from redis');
-      }
-
-      //
-      // Setup proxySwitch object to control proxy operations from configuration and any restored
-      // state.  Each algorithm has a listening port, current coin name, and an active pool to
-      // which traffic is directed when activated in the config.
-      //
-      // In addition, the proxy config also takes diff and varDiff parmeters the override the
-      // defaults for the standard config of the coin.
-      //
-      Object.keys(portalConfig.switching).forEach(function(switchName) {
-
-        var algorithm = portalConfig.switching[switchName].algorithm;
-
-        if (!portalConfig.switching[switchName].enabled) return;
-
-
-        var initalPool = proxyState.hasOwnProperty(algorithm) ? proxyState[algorithm] : _this.getFirstPoolForAlgorithm(algorithm);
-        proxySwitch[switchName] = {
-          algorithm: algorithm,
-          ports: portalConfig.switching[switchName].ports,
-          currentPool: initalPool,
-          servers: []
-        };
-
-
-        Object.keys(proxySwitch[switchName].ports).forEach(function(port) {
-          var f = net.createServer(function(socket) {
-            var currentPool = proxySwitch[switchName].currentPool;
-
-            //todo to string interpolation, i'm tired
-            logger.debug('Connection to ' +
-              switchName + ' from ' +
-              socket.remoteAddress + ' on ' +
-              port + ' routing to ' + currentPool);
-
-            if (pools[currentPool]) {
-              pools[currentPool].getStratumServer().handleNewClient(socket);
-            } else {
-              pools[initalPool].getStratumServer().handleNewClient(socket);
-            }
-
-          }).listen(parseInt(port), function() {
-            //todo to string interpolation, i'm tired
-            logger.debug('Switching "' + switchName +
-              '" listening for ' + algorithm +
-              ' on port ' + port +
-              ' into ' + proxySwitch[switchName].currentPool);
-          });
-          proxySwitch[switchName].servers.push(f);
-        });
-
-      });
-    });
-  }
-
+  
   this.getFirstPoolForAlgorithm = function(algorithm) {
     var foundCoin = "";
     Object.keys(poolConfigs).forEach(function(coinName) {
@@ -340,40 +202,5 @@ module.exports = function() {
     return foundCoin;
   };
 
-  //
-  // Called when stratum pool emits its 'started' event to copy the initial diff and vardiff
-  // configuation for any proxy switching ports configured into the stratum pool object.
-  //
-  this.setDifficultyForProxyPort = function(pool, coin, algo) {
 
-
-    logger.debug(`[${algo}] Setting proxy difficulties after pool start`);
-
-    Object.keys(portalConfig.switching).forEach(function(switchName) {
-      if (!portalConfig.switching[switchName].enabled) {
-        return
-      }
-
-      var switchAlgo = portalConfig.switching[switchName].algorithm;
-      if (pool.options.coin.algorithm !== switchAlgo) {
-        return
-      }
-
-      // we know the switch configuration matches the pool's algo, so setup the diff and
-      // vardiff for each of the switch's ports
-      for (var port in portalConfig.switching[switchName].ports) {
-
-        if (portalConfig.switching[switchName].ports[port].varDiff) {
-          pool.setVarDiff(port, portalConfig.switching[switchName].ports[port].varDiff);
-        }
-
-        if (portalConfig.switching[switchName].ports[port].diff) {
-          if (!pool.options.ports.hasOwnProperty(port)) {
-            pool.options.ports[port] = {};
-          }
-          pool.options.ports[port].diff = portalConfig.switching[switchName].ports[port].diff;
-        }
-      }
-    });
-  };
 };
