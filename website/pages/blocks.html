@@ -36,7 +36,7 @@
     width: 100%;
   }
 </style>
-<div style="margin-top: 36px;" >
+<div>
   {{ var sortedPools = Object.keys(it.stats.pools); }}
   {{ sortedPools.sort(function(a, b) { return a.workerCount - b.workerCount; }); }}
   <div class="col-md-5 table-responsive">

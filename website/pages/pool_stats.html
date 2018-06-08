@@ -8,7 +8,9 @@
   .chartHolder {
     min-height: 300px;
   }
-
+  .td_title {
+    font-weight:  700;
+  }
 </style>
 
 <div class="container-fluid p-4">
@@ -25,36 +27,37 @@
         <tbody>
             {{ for(var pool in it.stats.pools) { }}
               {{ if(pool !== it.stats.coin) continue; }}
-              <tr>
-                <td>Coin: </td>
-                <td><img src="/static/icons/{{=String(it.stats.coin)}}.png" height="24px"/></td>
-                <td>Port:</td>
+              <tr>                
+                <script> console.log({{=JSON.stringify(it)}}); </script>
+                <td class="td_title">Name: </td>
+                <td>{{=(String(it.stats.coin).charAt(0).toUpperCase() + String(it.stats.coin).slice(1))}}</td>
+                <td class="td_title">Port:</td>
                 {{ for(var pool in it.poolsConfigs) { }}
                   {{ if(pool !== it.stats.coin) continue; }}
                   <td>{{=Object.keys(it.poolsConfigs[pool].ports)}}</td>
                   {{ break; }}
                 {{ } }}
-                <td>Hashrate:</td>
+                <td class="td_title">Hashrate:</td>
                 <td id="poolHashRate">{{=it.stats.pools[pool].hashrateString}}</td>
-                <td>Pending:</td>
+                <td class="td_title">Pending:</td>
                 <td id="pendingBlocks">{{=it.stats.pools[pool].blocks.pending}}</td>
-                <td>Connections:</td>
+                <td class="td_title">Connections:</td>
                 <td>{{=it.stats.pools[pool].poolStats.networkConnections}}</td>
-                <td>Difficulty:</td>
+                <td class="td_title">Difficulty:</td>
                 <td>{{=Number(Math.round(it.stats.pools[pool].poolStats.networkDiff + 'e' + 4) + 'e-' + 4)}}</td>
               <tr>
               <tr>
-                <td>Name: </td>
-                <td>{{=(String(it.stats.coin).charAt(0).toUpperCase() + String(it.stats.coin).slice(1))}}</td>
-                <td>Workers:</td>
+                <td class="td_title">Algo: </td>
+                <td>{{=it.poolsConfigs[it.stats.coin].coin.algorithm}}</td>
+                <td class="td_title">Workers:</td>
                 <td id="poolWorkers">{{=it.stats.pools[pool].workerCount}}</td>
-                <td>Valid Shares:</td>
+                <td class="td_title">Valid Shares:</td>
                 <td id="validShares">{{=it.stats.pools[pool].poolStats.validShares}}</td>
-                <td>Confirmed:</td>
+                <td class="td_title">Confirmed:</td>
                 <td id="confirmedBlocks">{{=it.stats.pools[pool].blocks.confirmed}}</td>
-                <td>Hashrate:</td>
+                <td class="td_title">Hashrate:</td>
                 <td>{{=it.stats.pools[pool].poolStats.networkSolsString}}</td>
-                <td>Height:</td>
+                <td class="td_title">Height:</td>
                 <td>{{=it.stats.pools[pool].poolStats.networkBlocks}}</td>
               </tr>
               {{ break; }}

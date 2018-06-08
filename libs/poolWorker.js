@@ -147,6 +147,12 @@ module.exports = function() {
 
     var pool = Stratum.createPool(poolOptions, authorizeFN, logger);
     pool.on('share', function(isValidShare, isValidBlock, data) {
+      
+      if (data) {
+      //handlers.diff(workerName, diff);
+      }
+      
+      
       logger.silly('onStratumPoolShare');
       logger.debug("forkId %s", forkId);
       var shareDataJsonStr = JSON.stringify(data);
@@ -173,6 +179,7 @@ module.exports = function() {
 
     }).on('difficultyUpdate', function(workerName, diff) {
       logger.info('Difficulty update to diff %s workerName = %s', JSON.stringify(workerName));
+      
       handlers.diff(workerName, diff);
     }).on('log', function(severity, text) {
       logger.info(text);

@@ -36,7 +36,6 @@ module.exports = function () {
         'index.html': 'index',
         'home.html': '',
     	  'pools.html': 'pools',
-        'getting_started.html': 'getting_started',
         'stats.html': 'stats',
         'dashboard.html': 'dashboard',
         'api.html': 'api',

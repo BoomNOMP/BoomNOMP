@@ -91,7 +91,7 @@ function displayCharts() {
     'Blocks',
     {
       beginAtZero: true,
-      fixedStepSize: 1
+      //fixedStepSize: 1
     }
   );
 }
