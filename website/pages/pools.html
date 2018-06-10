@@ -16,7 +16,6 @@
 	     		<th>Algorithm</th>
 	      	<th>Workers</th>
 		  		<th>Hash Rate</th>
-        	<th>Fee</th>
 	    </tr>
 	  </thead>
 	  <tbody>
@@ -32,7 +31,6 @@
             		{{ for (var r in rewardRecipients) { }}
             			{{ total += rewardRecipients[r]; }}
             		{{ } }}
-            		<td>{{=total}}%</td>
 		    </tr>
 			{{ } }}
 	  </tbody>

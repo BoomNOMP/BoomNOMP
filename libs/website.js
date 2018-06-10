@@ -36,13 +36,8 @@ module.exports = function () {
         'index.html': 'index',
         'home.html': '',
     	  'pools.html': 'pools',
-        'stats.html': 'stats',
-        'dashboard.html': 'dashboard',
-        'api.html': 'api',
-        'learn_more.html': 'learn_more',
         'miner_stats.html': 'miner_stats',
-        'pool_stats.html': 'pool_stats',
-        'blocks.html': 'blocks'
+        'pool_stats.html': 'pool_stats'
     };
 
     var pageTemplates = {};
@@ -81,6 +76,7 @@ module.exports = function () {
             var filePath = 'website/' + (fileName === 'index.html' ? '' : 'pages/') + fileName;
             fs.readFile(filePath, 'utf8', function(err, data){
                 var pTemp = dot.template(data);
+                //console.log(fileName);
                 pageTemplates[pageFiles[fileName]] = pTemp
                 callback();
             });

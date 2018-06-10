@@ -16,12 +16,8 @@
 <div class="container-fluid p-4">
 	<div class="row">
   	<div class="col-md-12 pl-0 pr-0">
+  	<div class="chartLabel">Pool Information</div>
       <table class="table table-bordered table-responsive-lg">
-        <thead>
-          <tr>
-            <th colspan="12" scope="col" style="text-align: center;">Pool Information</th>
-          </tr>
-        </thead>
         <tbody>
             {{ for(var pool in it.stats.pools) { }}
               {{ if(pool !== it.stats.coin) continue; }}
@@ -62,9 +58,9 @@
                 <td colspan="1" class="td_title">Errors: </td>
                 <td colspan="7" id="errors">{{=it.stats.pools[pool].poolStats.errors || "&#128257;" }}</td>
                 <td class="td_title">Balance:</td>
-                <td id="mybalance">{{=it.stats.pools[pool].poolStats.myBalance || "&#128257;"}}</td>
+                <td id="mybalance">{{=it.stats.pools[pool].poolStats.myBalance || "&#128257;"}} {{=it.stats.pools[pool].symbol}}</td>
                 <td class="td_title">Money supply:</td>
-                <td id="moneysupply">{{=it.stats.pools[pool].poolStats.networkMoneysupply || "&#128257;"}}</td>
+                <td id="moneysupply">{{=it.stats.pools[pool].poolStats.networkMoneysupply || "&#128257;"}} {{=it.stats.pools[pool].symbol}}</td>
               </tr>
               {{ break; }}
             {{ } }}

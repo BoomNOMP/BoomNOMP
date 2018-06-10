@@ -230,7 +230,7 @@
                         <a href="#menu-toggle" id="menu-toggle"><i class="fa fa-bars sidebar-icon"></i> Toggle Menu</a>
                     </li>
                     <li>
-                        <a href="/dashboard"><i class="fa fa-home sidebar-icon"></i> Dashboard</a>
+                        <a href="/"><i class="fa fa-home sidebar-icon"></i> Dashboard</a>
                     </li>
                     <li>
                         <a href="/pools"><i class="fa fa-info-circle sidebar-icon"></i> Pools <span class="sr-only">(current)</span></a>
@@ -242,11 +242,6 @@
                           <li><a class="mybg-dark text-light pl-3" href="/stats/{{=it.stats.pools[pool].name}}"><img src="/static/icons/{{=it.stats.pools[pool].name}}.png" height="16px"/> {{=it.stats.pools[pool].name.charAt(0).toUpperCase() + it.stats.pools[pool].name.slice(1)}}</a></li>
                        {{ } }}
                      </ul>
-                   </li>
-                   <li>
-                     <a href="/blocks">
-                         <i class="fa fa-history sidebar-icon"></i> Block History
-                       </a>
                    </li>
                  </ul>
 
