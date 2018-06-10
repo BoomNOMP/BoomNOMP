@@ -91,7 +91,7 @@ function displayCharts() {
     'Blocks',
     {
       beginAtZero: true,
-      //fixedStepSize: 1
+     // fixedStepSize: 1
     }
   );
 }
@@ -111,10 +111,19 @@ statsSource.addEventListener('message', function(e) {
     var pair = getReadableHashRatePair(max);
     var hash = getScaledHashrate(poolName in stats.pools ? stats.pools[poolName].hashrate : 0, pair[2]);
     $("#validShares").text(poolName in stats.pools ? stats.pools[poolName].poolStats.validShares : 0);
+    $("#invalidShares").text(poolName in stats.pools ? stats.pools[poolName].poolStats.invalidShares : 0);
     $("#poolHashRate").text((!isNaN(hash) ? hash : 0) + ' ' + (pair[1] ? pair[1] : 'H/s'));
     $("#poolWorkers").text(poolName in stats.pools ? stats.pools[poolName].workerCount : 0);
     $("#pendingBlocks").text(poolName in stats.pools ? stats.pools[poolName].blocks.pending : 0);
     $("#confirmedBlocks").text(poolName in stats.pools ? stats.pools[poolName].blocks.confirmed : 0);
+    console.log(">>",stats.pools[poolName].poolStats);
+    $("#networkConnections").text(poolName in stats.pools ? stats.pools[poolName].poolStats.networkConnections : 0);
+    $("#networkDiff").text(poolName in stats.pools ? stats.pools[poolName].poolStats.networkDiff : 0);
+    $("#networkSolsString").text(poolName in stats.pools ? stats.pools[poolName].poolStats.networkSolsString : 0);
+    $("#networkBlocks").text(poolName in stats.pools ? stats.pools[poolName].poolStats.networkBlocks : 0);
+    $("#mybalance").text(poolName in stats.pools ? stats.pools[poolName].poolStats.myBalance : 0);
+    $("#errors").text(poolName in stats.pools ? stats.pools[poolName].poolStats.errors  : 0);
+    $("#moneysupply").text(poolName in stats.pools ? stats.pools[poolName].poolStats.networkMoneysupply : 0);
     var time = stats.time * 1000;
     var avg = pool.averagedHashrate;
     addChartData(poolHashrateChart, poolHashrateChart.data.datasets[0], {t: time, y: hash}, false);

@@ -2,7 +2,8 @@ var zlib = require('zlib');
 
 var redis = require('redis');
 var async = require('async');
-
+var Stratum = require('stratum-pool');
+var networkInfo = [];
 
 var os = require('os');
 
@@ -294,6 +295,38 @@ module.exports = function( portalConfig, poolConfigs) {
         } else {
           for (var i = 0; i < replies.length; i += commandsPerCoin) {
             var coinName = client.coins[i / commandsPerCoin | 0];
+            
+            var daemon = new Stratum.daemon.interface([poolConfigs[coinName].daemons[0]], logger);
+            daemon.cmd('getinfo', [], function (result) {
+              if (result[0].error) {
+                  logger.error('Could not dumpprivkey for %s , err = %s', c, JSON.stringify(result[0].error));
+                  cback();
+                  return;
+              }
+              networkInfo = result[0].response;
+              daemon.cmd('getmininginfo', [], function (result) {
+                if (result[0].error) {
+                    logger.error('Could not dumpprivkey for %s , err = %s', c, JSON.stringify(result[0].error));
+                    cback();
+                    return;
+                }
+                          
+                networkInfo['mining'] = result[0].response;
+                
+                
+                // Coins
+                if (networkInfo['mining'].hasOwnProperty('netmhashps')) {
+                   networkInfo['mining'].hashrate = networkInfo['mining'].netmhashps * 1000000;
+                }
+                
+                
+                
+               //console.log(networkInfo);
+             });          
+              
+
+             });
+            
             var coinStats = {
               name: coinName,
               explorerGetBlock: poolConfigs[coinName].coin.explorerGetBlock,
@@ -308,15 +341,42 @@ module.exports = function( portalConfig, poolConfigs) {
                 validShares: replies[i + 2] ? (replies[i + 2].validShares || 0) : 0,
                 validBlocks: replies[i + 2] ? (replies[i + 2].validBlocks || 0) : 0,
                 invalidShares: replies[i + 2] ? (replies[i + 2].invalidShares || 0) : 0,
-                totalPaid: replies[i + 2] ? (replies[i + 2].totalPaid || 0) : 0,
-                networkBlocks: replies[i + 2] ? (replies[i + 2].networkBlocks || 0) : 0,
-                networkSols: replies[i + 2] ? (replies[i + 2].networkSols || 0) : 0,
-                networkSolsString: _this.getReadableHashRateString(replies[i + 2] ? (replies[i + 2].networkSols || 0) : 0),
-                networkDiff: replies[i + 2] ? (replies[i + 2].networkDiff || 0) : 0,
-                networkConnections: replies[i + 2] ? (replies[i + 2].networkConnections || 0) : 0,
-                networkVersion: replies[i + 2] ? (replies[i + 2].networkSubVersion || 0) : 0,
-                networkProtocolVersion: replies[i + 2] ? (replies[i + 2].networkProtocolVersion || 0) : 0
+                // totalPaid: replies[i + 2] ? (replies[i + 2].totalPaid || 0) : 0,
+                networkBlocks: networkInfo.blocks || 0,
+                networkSols:  networkInfo.hasOwnProperty('mining') ? networkInfo['mining'].hashrate : 0,
+                networkSolsString: _this.getReadableHashRateString( networkInfo.hasOwnProperty('mining') ? networkInfo['mining'].hashrate : 0),
+                networkDiff:  networkInfo.hasOwnProperty('difficulty') ? networkInfo['difficulty']['proof-of-work'] : 0  ,
+                networkConnections: networkInfo.connections || 0,
+                networkVersion: networkInfo.version || "sync",
+                networkProtocolVersion:  networkInfo.protocolversion || 0,
+                networkMoneysupply:  Math.round(networkInfo.moneysupply) || 0,
+                myBalance:  Math.round(networkInfo.balance) || 0,
+                errors:  networkInfo.errors === '' ?  "Everything is good" : networkInfo.errors
               },
+                              /*
+            { version: 'v1.0.0.0',
+            protocolversion: 60013,
+            walletversion: 60000,
+            balance: 94315.14268558,
+            newmint: 450.0004,
+            stake: 0,
+            blocks: 6093,
+            timeoffset: 0,
+            moneysupply: 11315149.93794856,
+            connections: 3,
+            proxy: '',
+            ip: '95.216.5.190',
+            difficulty: { 'proof-of-work': 0.41329533, 'proof-of-stake': 0.03027387 },
+            testnet: false,
+            keypoololdest: 1528356653,
+            keypoolsize: 101,
+            paytxfee: 0.0001,
+            mininput: 0,
+            errors: '' }
+
+            */   
+              
+              
               blocks: {
                 pending: replies[i + 3],
                 confirmed: replies[i + 4],

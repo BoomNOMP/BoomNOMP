@@ -19,16 +19,14 @@
       <table class="table table-bordered table-responsive-lg">
         <thead>
           <tr>
-            <th colspan="4" scope="col" style="text-align: center;">General Information</th>
-            <th colspan="4" scope="col" style="text-align: center;">Pool Information</th>
-            <th colspan="4" scope="col" style="text-align: center;">Network Information</th>
+            <th colspan="12" scope="col" style="text-align: center;">Pool Information</th>
           </tr>
         </thead>
         <tbody>
             {{ for(var pool in it.stats.pools) { }}
               {{ if(pool !== it.stats.coin) continue; }}
               <tr>                
-                <script> console.log({{=JSON.stringify(it)}}); </script>
+                <script> console.log({{=JSON.stringify("it")}}); </script>
                 <td class="td_title">Name: </td>
                 <td>{{=(String(it.stats.coin).charAt(0).toUpperCase() + String(it.stats.coin).slice(1))}}</td>
                 <td class="td_title">Port:</td>
@@ -39,12 +37,12 @@
                 {{ } }}
                 <td class="td_title">Hashrate:</td>
                 <td id="poolHashRate">{{=it.stats.pools[pool].hashrateString}}</td>
-                <td class="td_title">Pending:</td>
+                <td class="td_title">Block found:</td>
                 <td id="pendingBlocks">{{=it.stats.pools[pool].blocks.pending}}</td>
                 <td class="td_title">Connections:</td>
-                <td>{{=it.stats.pools[pool].poolStats.networkConnections}}</td>
+                <td id="networkConnections">{{=it.stats.pools[pool].poolStats.networkConnections || "&#128257;"}}</td>
                 <td class="td_title">Difficulty:</td>
-                <td>{{=Number(Math.round(it.stats.pools[pool].poolStats.networkDiff + 'e' + 4) + 'e-' + 4)}}</td>
+                <td id="networkDiff">{{=Number(Math.round(it.stats.pools[pool].poolStats.networkDiff + 'e' + 4) + 'e-' + 4) || "&#128257;" }}</td>
               <tr>
               <tr>
                 <td class="td_title">Algo: </td>
@@ -52,13 +50,21 @@
                 <td class="td_title">Workers:</td>
                 <td id="poolWorkers">{{=it.stats.pools[pool].workerCount}}</td>
                 <td class="td_title">Valid Shares:</td>
-                <td id="validShares">{{=it.stats.pools[pool].poolStats.validShares}}</td>
-                <td class="td_title">Confirmed:</td>
-                <td id="confirmedBlocks">{{=it.stats.pools[pool].blocks.confirmed}}</td>
+                <td id="validShares">{{=it.stats.pools[pool].poolStats.validShares }}</td>
+                <td class="td_title">Invalid Shares:</td>
+                <td id="invalidShares">{{=it.stats.pools[pool].poolStats.invalidShares || "&#128257;"}}</td>
                 <td class="td_title">Hashrate:</td>
-                <td>{{=it.stats.pools[pool].poolStats.networkSolsString}}</td>
+                <td id="networkSolsString">{{=it.stats.pools[pool].poolStats.networkSolsString}}</td>
                 <td class="td_title">Height:</td>
-                <td>{{=it.stats.pools[pool].poolStats.networkBlocks}}</td>
+                <td id="networkBlocks">{{=it.stats.pools[pool].poolStats.networkBlocks || "&#128257;"}}</td>
+              </tr>
+              <tr>
+                <td colspan="1" class="td_title">Errors: </td>
+                <td colspan="7" id="errors">{{=it.stats.pools[pool].poolStats.errors || "&#128257;" }}</td>
+                <td class="td_title">Balance:</td>
+                <td id="mybalance">{{=it.stats.pools[pool].poolStats.myBalance || "&#128257;"}}</td>
+                <td class="td_title">Money supply:</td>
+                <td id="moneysupply">{{=it.stats.pools[pool].poolStats.networkMoneysupply || "&#128257;"}}</td>
               </tr>
               {{ break; }}
             {{ } }}
